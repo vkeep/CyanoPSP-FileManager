@@ -140,10 +140,7 @@ int main(int argc, char *argv[])
 
 	for(;;)
 	{	
-		pspDebugScreenClear();
-		oslDrawFillRect(0, 0, 480, 272, RGB(255,255,255));
 		centerText(480/2, 272/2, testDirectory, 50);	// Show the path that 'testDirectory' was supposed to recieve from dirBrowse();
-		sceGuSwapBuffers();
 		sceDisplayWaitVblankStart(); 
 	 
 	}

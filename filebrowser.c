@@ -22,9 +22,9 @@ Part of Slasher's code.
 #define WHITE				RGB(255, 255, 255)
 
 #define MAX_FILES			255 // change this accordingly (max amount of files you want to load)
-#define MAX_DISPLAY			20 // change this accordingly (max amount of files you want to display on-screen)
-#define DISPLAY_X			50 // change this accordingly (X value of where you want the filebrowser displayed)
-#define DISPLAY_Y			50 // change this accordingly (Y value of where you want the filebrowser displayed)
+#define MAX_DISPLAY			5 // change this accordingly (max amount of files you want to display on-screen)
+#define DISPLAY_X			70 // change this accordingly (X value of where you want the filebrowser displayed)
+#define DISPLAY_Y			79 // change this accordingly (Y value of where you want the filebrowser displayed)
 
 OSL_IMAGE *filemanagerbg;
 
@@ -232,17 +232,17 @@ void dirDown()
 }
 
 void dirDisplay()
-{
-	///// DISPLAY /////
-	oslDrawFillRect(0, 0, 480, 272, RGB(255,255,255));
+{	
 	oslDrawImageXY(filemanagerbg, 0, 19);
 	centerText(480/2, 1, lastDir, 50); // The current directory your in (near the top of the screen)
-
+	
 	// Displays the directories, while also incorporating the scrolling
 	for(i=curScroll;i<MAX_DISPLAY+curScroll;i++) {
+	
 		// Handles the ">" and the display to not move past the MAX_DISPLAY
 		// For moving down
 		//if ((folderIcons[i].active == 0) && (current >= i-1)) {
+				
 		if ((folderIcons[i].active == 0) && (current >= i-1)) {
 			current = i-1;
 			break;
@@ -255,10 +255,10 @@ void dirDisplay()
 			
 		// If the currently selected item is active, then display the name
 		if (folderIcons[i].active == 1) {
-			oslDrawStringf(DISPLAY_X, (i - curScroll)*10+DISPLAY_Y, folderIcons[i].name);	// change the X & Y value accordingly if you want to move it (for Y, just change the +10)
+			oslDrawStringf(DISPLAY_X, (i - curScroll)*40+DISPLAY_Y, folderIcons[i].name);	// change the X & Y value accordingly if you want to move it (for Y, just change the +10)		
 		}
 	}
-	oslDrawStringf(DISPLAY_X-10, (current - curScroll)*10+DISPLAY_Y, ">");	
+	oslDrawStringf(DISPLAY_X-10, (current - curScroll)*40+DISPLAY_Y, ">");	
 }
 
 void dirControls()
@@ -339,14 +339,12 @@ char * dirBrowse(char * path)
 		dirDisplay();
 		dirControls();
 		
+		sceDisplayWaitVblankStart();
+		
 		if (strlen(returnMe) > 4) {
 			break;
 		}
-		sceGuSwapBuffers();
-		sceDisplayWaitVblankStart(); 
-
 	}
-
 	return returnMe;
 }
 
