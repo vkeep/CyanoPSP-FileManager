@@ -132,8 +132,6 @@ int main(int argc, char *argv[])
 		oslDebug("It seems certain files necessary for the program to run are missing. Please make sure you have all the files required to run the program.");
 
 		oslStartDrawing();
-
-		
 		
 		// Test out the function
 	char * testDirectory = dirBrowse("ms0:");

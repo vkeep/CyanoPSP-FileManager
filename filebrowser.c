@@ -21,16 +21,13 @@ Part of Slasher's code.
 #define printf				pspDebugScreenPrintf
 #define WHITE				RGB(255, 255, 255)
 
-#define MAX_FILES			255 // change this accordingly (max amount of files you want to load)
-#define MAX_DISPLAY			5 // change this accordingly (max amount of files you want to display on-screen)
-#define DISPLAY_X			70 // change this accordingly (X value of where you want the filebrowser displayed)
-#define DISPLAY_Y			79 // change this accordingly (Y value of where you want the filebrowser displayed)
+#define MAX_FILES			255 // max amount of files needed to load.
+#define MAX_DISPLAY			5 // max amount of files displayed on-screen.
+#define DISPLAY_X			70 // X value of where the filebrowser is displayed.
+#define DISPLAY_Y			79 // Y value of the filebrowser is displayed.
 
-OSL_IMAGE *filemanagerbg;
-
-/////////////////////////////////////////////////////////////////
-////////////////////////// GLOBALS //////////////////////////////
-/////////////////////////////////////////////////////////////////
+OSL_IMAGE *filemanagerbg, *diricon;
+OSL_FONT *pgfFont;
 
 typedef struct fileIcon {
 
@@ -234,12 +231,12 @@ void dirDown()
 void dirDisplay()
 {	
 	oslDrawImageXY(filemanagerbg, 0, 19);
-	centerText(480/2, 1, lastDir, 50); // The current directory your in (near the top of the screen)
+	oslDrawStringf(66, 29, lastDir); // Displays the current directory.
 	
 	// Displays the directories, while also incorporating the scrolling
 	for(i=curScroll;i<MAX_DISPLAY+curScroll;i++) {
 	
-		// Handles the ">" and the display to not move past the MAX_DISPLAY
+		// Handles the cursor and the display to not move past the MAX_DISPLAY.
 		// For moving down
 		//if ((folderIcons[i].active == 0) && (current >= i-1)) {
 				
