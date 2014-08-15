@@ -24,7 +24,7 @@ Part of Slasher's code.
 #define MAX_FILES			255 // max amount of files needed to load.
 #define MAX_DISPLAY			5 // max amount of files displayed on-screen.
 #define DISPLAY_X			70 // X value of where the filebrowser is displayed.
-#define DISPLAY_Y			79 // Y value of the filebrowser is displayed.
+#define DISPLAY_Y			70 // Y value of the filebrowser is displayed.
 
 OSL_IMAGE *filemanagerbg, *diricon;
 OSL_FONT *pgfFont;
@@ -252,10 +252,10 @@ void dirDisplay()
 			
 		// If the currently selected item is active, then display the name
 		if (folderIcons[i].active == 1) {
-			oslDrawStringf(DISPLAY_X, (i - curScroll)*40+DISPLAY_Y, folderIcons[i].name);	// change the X & Y value accordingly if you want to move it (for Y, just change the +10)		
+			oslDrawStringf(DISPLAY_X, (i - curScroll)*44+DISPLAY_Y, folderIcons[i].name);	// change the X & Y value accordingly if you want to move it (for Y, just change the +10)		
 		}
 	}
-	oslDrawStringf(DISPLAY_X-10, (current - curScroll)*40+DISPLAY_Y, ">");	
+	oslDrawStringf(DISPLAY_X-10, (current - curScroll)*44+DISPLAY_Y, ">");	
 }
 
 void dirControls()
@@ -329,10 +329,14 @@ char * dirBrowse(char * path)
 	folderScan(path);
 	dirVars();
 
-	for(;;) {
+	
+	while (!osl_quit)
+	{		
+		oslStartDrawing();
+		
+		oslClearScreen(RGB(0,0,0));	
 		oldpad = pad;
 		sceCtrlReadBufferPositive(&pad, 1);
-		pspDebugScreenClear();
 		dirDisplay();
 		dirControls();
 		
@@ -341,7 +345,11 @@ char * dirBrowse(char * path)
 		if (strlen(returnMe) > 4) {
 			break;
 		}
+		oslEndDrawing();
+		oslSyncFrame();	
+        oslAudioVSync();
 	}
+		
 	return returnMe;
 }
 

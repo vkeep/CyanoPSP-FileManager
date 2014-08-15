@@ -56,60 +56,6 @@ void filemanager_unload()
 	oslDeleteImage(unknownicon);
 }
 
-// Thanks to Omega2058, for helping me out with this.
-
-int listFiles(void) {
-
-	int dfd, result = 0, y = 23, iconY = 18, sCurr = 0;
-	
-	// Clear out "dir" by setting all it's members to 0 
-	memset(&dirent, 0, sizeof(dirent));
-	
-	// Open up the directory
-	dfd = sceIoDopen(rootdir);
-	
-	// Make sure that the directory was able to open
-	if(dfd < 0) {
-		return dfd;
-	}
-
-	// This portion will continue to read contents in 
-	// the directory and print it one-by-one :)
-	while (sceIoDread(dfd, &dirent) > 0) {	
-		//Confirm that the file is an actual name, blah, blah
-		if (strcmp(dirent.d_name, ".") == 0)
-			continue;
-		if (strcmp(dirent.d_name, ".") == 0)
-			continue;
-			
-		if (curr == sCurr) {
-			oslIntraFontSetStyle(pgfFont, 0.5, RGBA(41,118,195,255), RGBA(0,0,0,0), INTRAFONT_ALIGN_LEFT);
-			oslDrawStringf(80, y+=46, "%s", dirent.d_name);
-			goto end;
-		}	
-
-		if(sCurr > 5)
-		sCurr++;
-		
-		if (sCurr < 0)
-		sCurr--;
-		
-		// Print the file inside the directory
-		oslIntraFontSetStyle(pgfFont, 0.5, RGBA(0,0,0,255), RGBA(0,0,0,0), INTRAFONT_ALIGN_LEFT);
-		oslDrawStringf(80, y+=46, "%s", dirent.d_name);
-		oslDrawImageXY(diricon, 36, 56);
-		
-		end:
-		sCurr++;
-		result++;
-	}
-
-	// Close and return, we're done :D
-	sceIoDclose(dfd);
-	return result;
-
-}
-
 int main(int argc, char *argv[])
 {
 	initOSLib();
@@ -131,19 +77,21 @@ int main(int argc, char *argv[])
 	if (!filemanagerbg)
 		oslDebug("It seems certain files necessary for the program to run are missing. Please make sure you have all the files required to run the program.");
 
-		oslStartDrawing();
 		
 		// Test out the function
 	char * testDirectory = dirBrowse("ms0:");
 
-	for(;;)
-	{	
-		centerText(480/2, 272/2, testDirectory, 50);	// Show the path that 'testDirectory' was supposed to recieve from dirBrowse();
-		sceDisplayWaitVblankStart(); 
+	while (!osl_quit)
+	{		
+		oslStartDrawing();
+		oslClearScreen(RGB(0,0,0));	
+		
+		centerText(480/2, 272/2, testDirectory, 50);	// Shows the path that 'testDirectory' was supposed to receive from dirBrowse();
 	 
-	}
-	sceKernelSleepThread();
-	return 0;
+		oslEndDrawing();
+		oslSyncFrame();	
+        oslAudioVSync();
+	}		
 }
 
 
