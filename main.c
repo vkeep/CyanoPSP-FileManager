@@ -72,8 +72,6 @@ File dirScan[MAX_FILES];
 
 SceIoDirent g_dir;
 
-static int dispBufferNumber;
-static int initialized = 0;
 int i;
 int current;
 int curScroll;
@@ -90,7 +88,6 @@ int initOSLib(){
     oslSetQuitOnLoadFailure(1);
     oslSetKeyAutorepeatInit(40);
     oslSetKeyAutorepeatInterval(10);
-	initialized = 1;
     return 0;
 }
 
@@ -308,7 +305,7 @@ void dirDisplay()
 		
 		if((ext) != NULL ) 
 		{
-			if((strcmp(ext ,".PBP") == 0) || (strcmp(ext ,".prx") == 0) || (strcmp(ext ,".elf") == 0)) //Checks if the file is a binary file.
+			if((strcmp(ext ,".PBP") == 0) || (strcmp(ext ,".prx") == 0) || (strcmp(ext ,".PRX") == 0) || (strcmp(ext ,".elf") == 0)) //Checks if the file is a binary file.
 			{
 				oslDrawImageXY(binaryicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 			}
@@ -316,7 +313,7 @@ void dirDisplay()
 		
 		if((ext) != NULL ) 
 		{
-			if((strcmp(ext ,".txt") == 0) || (strcmp(ext ,".log") == 0) || (strcmp(ext ,".prop") == 0) || (strcmp(ext ,".lua") == 0)) //Checks if the file is a text document.
+			if((strcmp(ext ,".txt") == 0) || (strcmp(ext ,".TXT") == 0) || (strcmp(ext ,".log") == 0) || (strcmp(ext ,".prop") == 0) || (strcmp(ext ,".lua") == 0)) //Checks if the file is a text document.
 			{
 				oslDrawImageXY(txticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 			}
@@ -413,23 +410,6 @@ void dirBack()
 	} 
 }
 
-void getExtension(char *fileName, char *extension, int extMaxLength){
-    int i = 0, j = 0, count = 0;
-    for (i = strlen(fileName) - 1; i >= 0; i--){
-        if (fileName[i] == '.'){
-            if (i == strlen(fileName) - 1)
-                return;
-            for (j = i+1; j < strlen(fileName); j++){
-                extension[count++] = toupper(fileName[j]);
-                if (count > extMaxLength)
-                    return;
-            }
-            extension[count] = '\0';
-            return;
-        }
-    }
-}
-
 // Just call 'path' with whichever path you want it to start off in
 char * dirBrowse(char * path)
 {
@@ -485,19 +465,20 @@ int main(int argc, char *argv[])
 	if (!filemanagerbg)
 		oslDebug("It seems certain files necessary for the program to run are missing. Please make sure you have all the files required to run the program.");
 
-	char * testDirectory = dirBrowse("ms0:");
+	char * Directory = dirBrowse("ms0:");
 
 	while (!osl_quit)
 	{		
 		oslStartDrawing();
 		oslClearScreen(RGB(0,0,0));	
 		
-		centerText(480/2, 272/2, testDirectory, 50);	// Shows the path that 'testDirectory' was supposed to receive from dirBrowse();
+		centerText(480/2, 272/2, Directory, 50);	// Shows the path that 'Directory' was supposed to receive from dirBrowse();
 	 
 		oslEndDrawing();
 		oslSyncFrame();	
         oslAudioVSync();
-	}		
+	}	
+	return 0;
 }
 
 
