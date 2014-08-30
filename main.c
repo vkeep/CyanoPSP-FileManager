@@ -19,11 +19,11 @@
 #define rootdir "ms0:/" //Define root directory
 
 
-PSP_MODULE_INFO("CyanoPSP File Manager", 0x200, 1, 0);
+PSP_MODULE_INFO("CyanoPSP File Manager", 0x200, 2, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-128);
 
-OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *bar;
+OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar;
 
 OSL_FONT *pgfFont;
 
@@ -257,14 +257,16 @@ void dirDisplay()
 	oslDrawImageXY(filemanagerbg, 0, 19);
 	oslDrawStringf(66, 29, lastDir); // Displays the current directory.
 	oslDrawImageXY(bar,0,(current - curScroll)*44+CURR_DISPLAY_Y);
-	
+
 	// Displays the directories, while also incorporating the scrolling
 	for(i=curScroll;i<MAX_DISPLAY+curScroll;i++) {
+	
+		char * ext = strrchr(dirScan[i].name, '.'); //For file extension.
 	
 		// Handles the cursor and the display to not move past the MAX_DISPLAY.
 		// For moving down
 		//if ((folderIcons[i].active == 0) && (current >= i-1)) {
-				
+	
 		if ((folderIcons[i].active == 0) && (current >= i-1)) {
 			current = i-1;
 			break;
@@ -275,14 +277,70 @@ void dirDisplay()
 			break;
 		}
 		
-		if (dirScan[i].directory == 1 && (!dirScan[i].directory == 0))
-		{      // if it's a directory
-			oslDrawImageXY(diricon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-		}
-			
 		if (dirScan[i].directory == 0)
 		{  
 			oslDrawImageXY(unknownicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".mp3") == 0) || (strcmp(ext ,".mov") == 0) || (strcmp(ext ,".m4a") == 0) || (strcmp(ext ,".wav") == 0) || (strcmp(ext ,".ogg") == 0)) //Checks if the file is a music file.
+			{
+				oslDrawImageXY(mp3icon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".mp4") == 0) || (strcmp(ext ,".mpg") == 0) || (strcmp(ext ,".flv") == 0) || (strcmp(ext ,".mpeg") == 0)) //Checks if the file is a video.
+			{
+				oslDrawImageXY(videoicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".png") == 0) || (strcmp(ext ,".jpg") == 0) || (strcmp(ext ,".jpeg") == 0) || (strcmp(ext ,".gif") == 0)) //Checks if the file is an image.
+			{
+				oslDrawImageXY(imageicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".PBP") == 0) || (strcmp(ext ,".prx") == 0) || (strcmp(ext ,".elf") == 0)) //Checks if the file is a binary file.
+			{
+				oslDrawImageXY(binaryicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".txt") == 0) || (strcmp(ext ,".log") == 0) || (strcmp(ext ,".prop") == 0) || (strcmp(ext ,".lua") == 0)) //Checks if the file is a text document.
+			{
+				oslDrawImageXY(txticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".doc") == 0) || (strcmp(ext ,".docx") == 0) || (strcmp(ext ,".pdf") == 0) || (strcmp(ext ,".ppt") == 0)) //Checks if the file is a document.
+			{
+				oslDrawImageXY(documenticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if((ext) != NULL ) 
+		{
+			if((strcmp(ext ,".rar") == 0) || (strcmp(ext ,".zip") == 0) || (strcmp(ext ,".7z") == 0)) //Checks if the file is an archive.
+			{
+				oslDrawImageXY(archiveicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
+			}
+		}
+		
+		if (dirScan[i].directory == 1 && (!dirScan[i].directory == 0))
+		{      // if it's a directory
+			oslDrawImageXY(diricon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
 		// If the currently selected item is active, then display the name
@@ -415,6 +473,10 @@ int main(int argc, char *argv[])
 	txticon = oslLoadImageFilePNG("system/app/filemanager/txt.png", OSL_IN_RAM, OSL_PF_8888);
 	unknownicon = oslLoadImageFilePNG("system/app/filemanager/unknownfile.png", OSL_IN_RAM, OSL_PF_8888);
 	bar = oslLoadImageFilePNG("system/app/filemanager/bar.png", OSL_IN_RAM, OSL_PF_8888);
+	documenticon = oslLoadImageFilePNG("system/app/filemanager/documenticon.png", OSL_IN_RAM, OSL_PF_8888);
+	binaryicon = oslLoadImageFilePNG("system/app/filemanager/binaryicon.png", OSL_IN_RAM, OSL_PF_8888);
+	videoicon = oslLoadImageFilePNG("system/app/filemanager/videoicon.png", OSL_IN_RAM, OSL_PF_8888);
+	archiveicon = oslLoadImageFilePNG("system/app/filemanager/archiveicon.png", OSL_IN_RAM, OSL_PF_8888);
 	
 	pgfFont = oslLoadFontFile("system/fonts/DroidSans.pgf");
 	oslIntraFontSetStyle(pgfFont, 0.5, RGBA(0,0,0,255), RGBA(0,0,0,0), INTRAFONT_ALIGN_LEFT);
