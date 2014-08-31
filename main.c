@@ -23,7 +23,7 @@ PSP_MODULE_INFO("CyanoPSP File Manager", 0x200, 2, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-128);
 
-OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar;
+OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion;
 
 OSL_FONT *pgfFont;
 
@@ -187,7 +187,7 @@ int folderScan( char* path )
 	return 1;
 }
 
-int runFile( char* path, char* type )
+int runFile(char* path, char* type)
 {
 	// Folders
 	if (strcmp(type, "fld")==0) {
@@ -196,15 +196,78 @@ int runFile( char* path, char* type )
 	// '..' or 'dotdot'
 	else if (strcmp(type, "dotdot")==0){
 		dirBack();
-	}
-	// Other
-	else if (strcmp(type, "none")==0){
-		sprintf(returnMe, path);
-	}
-
+	}		
 	return 1;
 }
 
+void refresh()
+{
+	folderScan(lastDir);
+	dirBrowse(lastDir);
+}
+
+void DeleteFile(char * path)
+{
+	deletion = oslLoadImageFilePNG("system/app/filemanager/deletion.png", OSL_IN_RAM, OSL_PF_8888);
+	
+	while (!osl_quit) {
+	oslStartDrawing();	
+	oslDrawImageXY(deletion, 96,59);
+	oslDrawStringf(116,125,"This action cannot be undone. Do you");
+	oslDrawStringf(116,135,"want to continue?");
+	
+	oslDrawStringf(130,180,"Press circle");
+	oslDrawStringf(130,190,"to cancel");
+	oslDrawStringf(270,180,"Press cross");
+	oslDrawStringf(270,190,"to confirm");
+	
+	oslReadKeys();
+	
+	if (osl_keys->pressed.cross) {
+			sceIoRemove(path) >= 0;
+			oslDeleteImage(deletion);
+			refresh();
+		}
+
+	else if (osl_keys->pressed.circle) {
+			oslDeleteImage(deletion);
+			return;
+		}
+	oslEndDrawing();
+	oslSyncFrame();	
+	}
+};
+
+void showImage(char * path)
+{
+	 OSL_IMAGE * image = oslLoadImageFile(path, OSL_IN_VRAM, OSL_PF_8888);
+	 
+	 if(!image)
+		return 0;
+		
+	while (!osl_quit) {
+	
+	if(oslGetImageWidth(image) <= 480 && oslGetImageHeight(image) <= 272)
+	{	
+		oslStartDrawing();	
+		oslClearScreen(RGB(0,0,0));
+		
+		//draw image
+		oslDrawImageXY(image, 240 - oslGetImageWidth(image) / 2, 136 - oslGetImageHeight(image) / 2);
+		
+		//print name
+		oslDrawStringf(40, 230,strrchr(path, '/') + 1);
+		
+		oslEndDrawing();
+		oslSyncFrame();	
+		
+	};	
+	//delete image
+	oslDeleteImage(image);	
+	return 1;
+	}
+}
+	
 void centerText(int centerX, int centerY, char * centerText, int centerLength)
 {
 	if (strlen(centerText) <= centerLength) {
@@ -279,64 +342,51 @@ void dirDisplay()
 			oslDrawImageXY(unknownicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".mp3") == 0) || (strcmp(ext ,".mov") == 0) || (strcmp(ext ,".m4a") == 0) || (strcmp(ext ,".wav") == 0) || (strcmp(ext ,".ogg") == 0)) 
 		{
-			if((strcmp(ext ,".mp3") == 0) || (strcmp(ext ,".mov") == 0) || (strcmp(ext ,".m4a") == 0) || (strcmp(ext ,".wav") == 0) || (strcmp(ext ,".ogg") == 0)) //Checks if the file is a music file.
-			{
-				oslDrawImageXY(mp3icon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is a music file.
+			oslDrawImageXY(mp3icon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".mp4") == 0) || (strcmp(ext ,".mpg") == 0) || (strcmp(ext ,".flv") == 0) || (strcmp(ext ,".mpeg") == 0)) 
 		{
-			if((strcmp(ext ,".mp4") == 0) || (strcmp(ext ,".mpg") == 0) || (strcmp(ext ,".flv") == 0) || (strcmp(ext ,".mpeg") == 0)) //Checks if the file is a video.
-			{
-				oslDrawImageXY(videoicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is a video.
+			oslDrawImageXY(videoicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".png") == 0) || (strcmp(ext ,".jpg") == 0) || (strcmp(ext ,".jpeg") == 0) || (strcmp(ext ,".gif") == 0)) 
 		{
-			if((strcmp(ext ,".png") == 0) || (strcmp(ext ,".jpg") == 0) || (strcmp(ext ,".jpeg") == 0) || (strcmp(ext ,".gif") == 0)) //Checks if the file is an image.
-			{
-				oslDrawImageXY(imageicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is an image.
+			oslDrawImageXY(imageicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".PBP") == 0) || (strcmp(ext ,".prx") == 0) || (strcmp(ext ,".PRX") == 0) || (strcmp(ext ,".elf") == 0)) 
 		{
-			if((strcmp(ext ,".PBP") == 0) || (strcmp(ext ,".prx") == 0) || (strcmp(ext ,".PRX") == 0) || (strcmp(ext ,".elf") == 0)) //Checks if the file is a binary file.
-			{
-				oslDrawImageXY(binaryicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is a binary file.
+			oslDrawImageXY(binaryicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".txt") == 0) || (strcmp(ext ,".TXT") == 0) || (strcmp(ext ,".log") == 0) || (strcmp(ext ,".prop") == 0) || (strcmp(ext ,".lua") == 0)) 
 		{
-			if((strcmp(ext ,".txt") == 0) || (strcmp(ext ,".TXT") == 0) || (strcmp(ext ,".log") == 0) || (strcmp(ext ,".prop") == 0) || (strcmp(ext ,".lua") == 0)) //Checks if the file is a text document.
-			{
-				oslDrawImageXY(txticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is a text document.
+			oslDrawImageXY(txticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".doc") == 0) || (strcmp(ext ,".docx") == 0) || (strcmp(ext ,".pdf") == 0) || (strcmp(ext ,".ppt") == 0)) 
 		{
-			if((strcmp(ext ,".doc") == 0) || (strcmp(ext ,".docx") == 0) || (strcmp(ext ,".pdf") == 0) || (strcmp(ext ,".ppt") == 0)) //Checks if the file is a document.
-			{
-				oslDrawImageXY(documenticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is a document.
+			oslDrawImageXY(documenticon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
-		if((ext) != NULL ) 
+		if((ext) != NULL && (strcmp(ext ,".rar") == 0) || (strcmp(ext ,".zip") == 0) || (strcmp(ext ,".7z") == 0)) 
 		{
-			if((strcmp(ext ,".rar") == 0) || (strcmp(ext ,".zip") == 0) || (strcmp(ext ,".7z") == 0)) //Checks if the file is an archive.
-			{
-				oslDrawImageXY(archiveicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
-			}
+			//Checks if the file is an archive.
+			oslDrawImageXY(archiveicon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
 		if (dirScan[i].directory == 1 && (!dirScan[i].directory == 0))
-		{      // if it's a directory
+		{      
+			// if it's a directory
 			oslDrawImageXY(diricon,45,(i - curScroll)*44+ICON_DISPLAY_Y);
 		}
 		
@@ -352,6 +402,9 @@ void dirControls()
 {
 	///// CONTROLS /////
 	if (pad.Buttons != oldpad.Buttons) {
+		
+		char * ext = strrchr(dirScan[i].name, '.');
+	
 		if ((pad.Buttons & PSP_CTRL_DOWN) && (!(oldpad.Buttons & PSP_CTRL_DOWN))) {
 			dirDown();
 			timer = 0;
@@ -363,18 +416,24 @@ void dirControls()
 		if ((pad.Buttons & PSP_CTRL_CROSS) && (!(oldpad.Buttons & PSP_CTRL_CROSS))) {
 			runFile(folderIcons[current].filePath, folderIcons[current].fileType);
 		}
-		if ((pad.Buttons & PSP_CTRL_CROSS) && (!(oldpad.Buttons & PSP_CTRL_CROSS))) {
-			runFile(folderIcons[current].filePath, folderIcons[current].fileType);
-		}
 		if ((pad.Buttons & PSP_CTRL_TRIANGLE) && (!(oldpad.Buttons & PSP_CTRL_TRIANGLE))) {
 			if (!(stricmp(lastDir, "ms0:")==0) || (stricmp(lastDir, "ms0:/")==0)) {
 				curScroll = 1;
 				current = 1;
 			}
 		}
+		if ((pad.Buttons & PSP_CTRL_SQUARE) && (!(oldpad.Buttons & PSP_CTRL_SQUARE))) {
+			DeleteFile(folderIcons[current].filePath);
+		}
 		if ((pad.Buttons & PSP_CTRL_CIRCLE) && (!(oldpad.Buttons & PSP_CTRL_CIRCLE))) {
 			dirBack();
 		}
+		
+		if((ext) != NULL && (strcmp(ext ,".png") == 0) || (strcmp(ext ,".png") == 0) || (strcmp(ext ,".jpg") == 0) || (strcmp(ext ,".jpeg") == 0) || (strcmp(ext ,".gif") == 0) && (pad.Buttons & PSP_CTRL_CROSS) && (!(oldpad.Buttons & PSP_CTRL_CROSS))) 
+		{
+			showImage(folderIcons[current].filePath);
+		}
+		
 	}
 		
 	timer++;
