@@ -10,6 +10,8 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <oslib/oslib.h>
+#include "psploadexec_kernel.h"
+#include "mp3player.h"
 
 #define MAX_FILES			255 // max amount of files needed to load.
 #define MAX_DISPLAY			5 // max amount of files displayed on-screen.
@@ -24,7 +26,7 @@ PSP_MODULE_INFO("CyanoPSP File Manager", 0x200, 2, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-128);
 
-OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion, *action;
+OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion, *action, *mp3bg;
 
 OSL_FONT *pgfFont;
 
@@ -322,7 +324,7 @@ void recursiveDelete(const char *dir)
  sceIoRmdir(dir); 
 }
 
-void showImage(char * path)
+void showImage(const char * path)
 {
 	 OSL_IMAGE * image = oslLoadImageFile(path, OSL_IN_RAM, OSL_PF_8888);
 	 
@@ -349,6 +351,68 @@ void showImage(char * path)
 	//delete image
 	oslDeleteImage(image);	
 	return 1;
+}
+
+void MP3Play(char * path)
+{	
+
+	mp3bg = oslLoadImageFilePNG("system/app/apollo/mp3bg.png", OSL_IN_RAM, OSL_PF_8888);
+
+	if (!mp3bg)
+		oslDebug("It seems certain files necessary for the program to run are missing. Please make sure you have all the files required to run the program.");
+	
+	scePowerSetClockFrequency(333, 333, 166);
+	
+	pspAudioInit();
+	
+	int i;
+	MP3_Init(1);
+	MP3_Load(path);
+	MP3_Play();
+	
+	while (!osl_quit)
+  {
+		//Draws images onto the screen
+		oslStartDrawing();		
+		
+		oslClearScreen(RGB(0,0,0));
+
+		oslReadKeys();
+
+		oslDrawImageXY(mp3bg, 0, 19);
+		
+		if(osl_pad.held.triangle) {
+		break;
+		}
+		
+		else if(osl_pad.held.cross) 
+		{
+		MP3_Pause();
+		for(i=0; i<10; i++) {
+		sceDisplayWaitVblankStart();
+		}
+		}
+		
+		if (MP3_EndOfStream() == 1) 
+		{
+		MP3_Stop();
+		}
+		
+		if(osl_pad.held.circle)
+		{
+		MP3_Pause();
+		MP3_Stop();
+		MP3_FreeTune();
+		return;
+		}
+		
+		oslEndDrawing();
+		oslSyncFrame();	
+        oslAudioVSync();
+		}
+	MP3_Pause();
+	MP3_Stop();
+	MP3_FreeTune();
 }
 	
 void centerText(int centerX, int centerY, char * centerText, int centerLength)
@@ -509,19 +573,42 @@ void dirControls() //Controls
 			{
 			dirBack();
 			}
-		}				
+		}
 	}
+	
+	char * ext = strrchr(folderIcons[current].filePath, '.'); 
 	
 	if (osl_keys->pressed.select)
 	{
 			OptionMenu();
 	}
 	
-	if (osl_keys->pressed.cross)
+	if (((ext) != NULL) && ((strcmp(ext ,".png") == 0) || (strcmp(ext ,".jpg") == 0) || (strcmp(ext ,".jpeg") == 0) || (strcmp(ext ,".gif") == 0)) && (osl_keys->pressed.cross))
 	{
 			showImage(folderIcons[current].filePath);
 	}
-		
+	
+	if (((ext) != NULL) && ((strcmp(ext ,".PBP") == 0) || ((strcmp(ext ,".pbp") == 0))) && (osl_keys->pressed.cross))
+	{
+			struct SceKernelLoadExecParam param;
+
+			memset(&param, 0, sizeof(param));
+			
+			param.size = sizeof(param);
+			param.args = strlen(folderIcons[current].filePath)+1;
+			param.argp = folderIcons[current].filePath;
+			param.key = "updater";
+
+			printf("Starting program...\n");
+
+			sceKernelLoadExec(folderIcons[current].filePath, &param);
+	}
+	
+	if (((ext) != NULL) && ((strcmp(ext ,".mp3") == 0) || ((strcmp(ext ,".MP3") == 0))) && (osl_keys->pressed.cross))
+	{
+		MP3Play(folderIcons[current].filePath);
+	}
+	
 	timer++;
 	if ((timer > 30) && (pad.Buttons & PSP_CTRL_UP)) {
 		dirUp();
@@ -550,7 +637,6 @@ void dirBack()
 				break;
 			}
 		}
-		curScroll = 1;
 		folderScan(lastDir);
 	} 
 }

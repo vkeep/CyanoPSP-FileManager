@@ -1,5 +1,5 @@
 TARGET = CyanogenMod
-OBJS = main.o 
+OBJS = main.o mp3player.o
 	   
 ifeq ($(CONFIG_620), 1)
 CFLAGS += -DCONFIG_620=1
