@@ -34,6 +34,7 @@ OSL_COLOR black = RGB(0,0,0),red = RGB(255,0,0), blue = RGB(0,0,255);
 
 /* Globals */
 
+char *file;
 char fileName;
 SceIoDirent dirent;
 SceUID dirId = 0;
@@ -358,6 +359,62 @@ void oslPrintText(int x, int y, float size, char * text, OSL_COLOR color) {
    oslDrawStringf(x,y,text);
 }	
 
+int checkTextFile(char *textfile)
+{
+	SceUID fd = sceIoOpen(textfile, PSP_O_RDONLY, 0777);
+	
+	if(fd < 0)
+	   return -1;
+
+	sceIoClose(fd);
+	
+	file = textfile;
+
+	return 0;
+}
+
+char *getTextFromFile()
+{
+	char text_File[1000];
+
+	memset(text_File, 0, sizeof(text_File));
+	SceUID fd = sceIoOpen(file, PSP_O_RDONLY, 0777);
+	
+	sceIoRead(fd, text_File, 255);
+
+	sceIoClose(fd);
+
+	return text_File;
+}
+
+
+void displayTextFromFile()
+{
+	while (!osl_quit)
+  {
+
+	oslStartDrawing();	
+	
+	oslReadKeys();
+	
+	oslClearScreen(RGB(255,255,255));
+	
+	if(checkTextFile(folderIcons[current].filePath) == -1)
+	   oslDrawStringf(10,40,"Unable to Open");
+
+    oslDrawStringf(10,10," \n%s", getTextFromFile());	
+
+	if(osl_keys->pressed.circle)
+	{
+		return;
+	}
+				
+	oslEndDrawing();
+	oslSyncFrame();	
+    oslAudioVSync();
+	}
+}
+
 void MP3Play(char * path)
 {	
 
@@ -613,6 +670,11 @@ void dirControls() //Controls
 	if (((ext) != NULL) && ((strcmp(ext ,".mp3") == 0) || ((strcmp(ext ,".MP3") == 0))) && (osl_keys->pressed.cross))
 	{
 		MP3Play(folderIcons[current].filePath);
+	}
+	
+	if (((ext) != NULL) && ((strcmp(ext ,".txt") == 0) || ((strcmp(ext ,".TXT") == 0))) && (osl_keys->pressed.cross))
+	{
+		displayTextFromFile(folderIcons[current].filePath);
 	}
 	
 	timer++;
