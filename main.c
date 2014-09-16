@@ -26,7 +26,7 @@ PSP_MODULE_INFO("CyanoPSP File Manager", 0x200, 2, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-128);
 
-OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion, *action, *mp3bg;
+OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion, *action, *nowplaying;
 
 OSL_FONT *pgfFont;
 
@@ -352,13 +352,18 @@ void showImage(const char * path)
 	oslDeleteImage(image);	
 	return 1;
 }
+    
+void oslPrintText(int x, int y, float size, char * text, OSL_COLOR color) {
+   oslIntraFontSetStyle(pgfFont, size, color, RGBA(0,0,0,0), INTRAFONT_ALIGN_LEFT);
+   oslDrawStringf(x,y,text);
+}	
 
 void MP3Play(char * path)
 {	
 
-	mp3bg = oslLoadImageFilePNG("system/app/apollo/mp3bg.png", OSL_IN_RAM, OSL_PF_8888);
+	nowplaying = oslLoadImageFilePNG("system/app/apollo/nowplaying.png", OSL_IN_RAM, OSL_PF_8888);
 
-	if (!mp3bg)
+	if (!nowplaying)
 		oslDebug("It seems certain files necessary for the program to run are missing. Please make sure you have all the files required to run the program.");
 	
 	scePowerSetClockFrequency(333, 333, 166);
@@ -378,8 +383,9 @@ void MP3Play(char * path)
 		oslClearScreen(RGB(0,0,0));
 
 		oslReadKeys();
-
-		oslDrawImageXY(mp3bg, 0, 19);
+		
+		oslDrawImageXY(nowplaying, 0, 19);
+		oslPrintText(250,71,0.5,folderIcons[current].name,RGB(255,255,255));
 		
 		if(osl_pad.held.triangle) {
 		break;
@@ -398,7 +404,7 @@ void MP3Play(char * path)
 		MP3_Stop();
 		}
 		
-		if(osl_pad.held.circle)
+		if(osl_keys->pressed.circle)
 		{
 		MP3_Pause();
 		MP3_Stop();
