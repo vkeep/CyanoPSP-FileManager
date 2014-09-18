@@ -26,7 +26,7 @@ PSP_MODULE_INFO("CyanoPSP File Manager", 0x200, 2, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 PSP_HEAP_SIZE_KB(-128);
 
-OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion, *action, *nowplaying;
+OSL_IMAGE *filemanagerbg, *diricon, *imageicon, *mp3icon, *txticon, *unknownicon, *documenticon, *binaryicon, *videoicon, *archiveicon, *bar, *deletion, *action, *nowplaying, *textview;
 
 OSL_FONT *pgfFont;
 
@@ -375,12 +375,12 @@ int checkTextFile(char *textfile)
 
 char *getTextFromFile()
 {
-	char text_File[1000];
+	char text_File[2048];
 
 	memset(text_File, 0, sizeof(text_File));
 	SceUID fd = sceIoOpen(file, PSP_O_RDONLY, 0777);
 	
-	sceIoRead(fd, text_File, 255);
+	sceIoRead(fd, text_File, sizeof(text_File));
 
 	sceIoClose(fd);
 
@@ -394,15 +394,16 @@ void displayTextFromFile()
   {
 
 	oslStartDrawing();	
-	
 	oslReadKeys();
 	
-	oslClearScreen(RGB(255,255,255));
+	oslClearScreen(RGB(0,0,0));
+	oslDrawImageXY(textview,0,19);
 	
 	if(checkTextFile(folderIcons[current].filePath) == -1)
-	   oslDrawStringf(10,40,"Unable to Open");
+	   oslDrawStringf(40,33,"Unable to Open");
 
-    oslDrawStringf(10,10," \n%s", getTextFromFile());	
+	oslDrawStringf(40,33,folderIcons[current].name);	
+    oslDrawStringf(10,55," \n%s", getTextFromFile());	
 
 	if(osl_keys->pressed.circle)
 	{
@@ -625,6 +626,7 @@ void dirControls() //Controls
 		if ((pad.Buttons & PSP_CTRL_CROSS) && (!(oldpad.Buttons & PSP_CTRL_CROSS))) {
 			runFile(folderIcons[current].filePath, folderIcons[current].fileType);
 		}
+
 		if ((pad.Buttons & PSP_CTRL_TRIANGLE) && (!(oldpad.Buttons & PSP_CTRL_TRIANGLE))) {
 			if (!(stricmp(lastDir, "ms0:")==0) || (stricmp(lastDir, "ms0:/")==0)) {
 				curScroll = 1;
@@ -672,7 +674,7 @@ void dirControls() //Controls
 		MP3Play(folderIcons[current].filePath);
 	}
 	
-	if (((ext) != NULL) && ((strcmp(ext ,".txt") == 0) || ((strcmp(ext ,".TXT") == 0))) && (osl_keys->pressed.cross))
+	if (((ext) != NULL) && ((strcmp(ext ,".txt") == 0) || ((strcmp(ext ,".TXT") == 0)) || ((strcmp(ext ,".c") == 0)) || ((strcmp(ext ,".h") == 0)) || ((strcmp(ext ,".cpp") == 0))) && (osl_keys->pressed.cross))
 	{
 		displayTextFromFile(folderIcons[current].filePath);
 	}
@@ -752,6 +754,7 @@ int main(int argc, char *argv[])
 	txticon = oslLoadImageFilePNG("system/app/filemanager/txt.png", OSL_IN_RAM, OSL_PF_8888);
 	unknownicon = oslLoadImageFilePNG("system/app/filemanager/unknownfile.png", OSL_IN_RAM, OSL_PF_8888);
 	bar = oslLoadImageFilePNG("system/app/filemanager/bar.png", OSL_IN_RAM, OSL_PF_8888);
+	textview = oslLoadImageFilePNG("system/app/filemanager/textview.png", OSL_IN_RAM, OSL_PF_8888);
 	documenticon = oslLoadImageFilePNG("system/app/filemanager/documenticon.png", OSL_IN_RAM, OSL_PF_8888);
 	binaryicon = oslLoadImageFilePNG("system/app/filemanager/binaryicon.png", OSL_IN_RAM, OSL_PF_8888);
 	videoicon = oslLoadImageFilePNG("system/app/filemanager/videoicon.png", OSL_IN_RAM, OSL_PF_8888);
